@@ -1,4 +1,5 @@
 exports.config = {
   seleniumAddress: 'http://localhost:4444/wd/hub',
-  specs: ['todomvc.js']
+  specs: ['specs/*-spec.js'],
+  baseUrl: 'http://todomvc.com'
 };
