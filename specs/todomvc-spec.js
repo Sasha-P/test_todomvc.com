@@ -60,6 +60,14 @@ describe('TodoMVC page.', function() {
     return getTodoInTodosByIndex(index).element(by.model('todo.completed')); //ng-model="todo.completed"
   };
 
+  function getTodoTitleLast() {
+    return todoInTodos.last().element(by.binding('todo.title'));   //{{todo.title}}
+  };
+
+  function getTodoTitleFirst() {
+    return todoInTodos.first().element(by.binding('todo.title'));   //{{todo.title}}
+  };
+
   function getTodoTitleByIndex(index) {
     return getTodoInTodosByIndex(index).element(by.binding('todo.title'));   //{{todo.title}}
   };
@@ -119,32 +127,46 @@ describe('TodoMVC page.', function() {
     return remainingCount.getText();
   };
 
-  function aplieFilterAll() {
+  function applieFilterAll() {
     filterAll.click();
   };
 
-  function aplieFilterActive() {
+  function applieFilterActive() {
     filterActive.click();
   };
 
-  function aplieFilterCompleted() {
+  function applieFilterCompleted() {
     filterCompleted.click();
   };
 
-  function getCompletedCount() {
-    return completedCount.getText();
+  function getClearCompleted() {
+    return browser.findElement(protractor.By.xpath('.//footer/button'));
   };
+
+  function getCompletedCount() {
+    //return completedCount.getText();
+    var script = "var re = /\\d+/; \
+    var value = re.exec(arguments[0].innerHTML);\
+    if (value) { return parseInt(value[0]); }\
+    return 0;";
+    //var str = browser.executeScript("return arguments[0].innerHTML", getClearCompleted());
+    return browser.executeScript(script, getClearCompleted());
+  };
+
+  // function generateClearCompleted(value) {
+  //   return 'Clear completed (' + value + ')';
+  // };
   
   function clickClearCompletedTodos() {
-    var hiddenElement = browser.findElement(protractor.By.xpath('.//footer/button'));
-    browser.executeScript("arguments[0].click()", hiddenElement);
+    browser.executeScript("arguments[0].click()", getClearCompleted());
   };
   
   function mouseMove(element) {
     browser.actions().mouseMove(element).perform();
   };
 
-  function getRandomArbitrary(min, max) {
+  function getRandomArbitrary(max) {
+    var min = 2;
     return Math.random() * (max - min) + min;
   };
 
@@ -152,11 +174,11 @@ describe('TodoMVC page.', function() {
     browser.get('/examples/angularjs/#/');
   });
 
-  it('should have a title', function() {
+  xit('should have a title', function() {
     expect(browser.getTitle()).toMatch('TodoMVC');
   });
 
-  describe('Tests for helper functions.', function() {
+  xdescribe('Tests for helper functions.', function() {
 
     it('should create a one ToDo', function() {
       var newText = 'new ';
@@ -186,14 +208,14 @@ describe('TodoMVC page.', function() {
       clickClearCompletedTodos();
       addToDo(simpleTodoText + ' 3');
       mouseMove(filterCompleted);
-      aplieFilterCompleted();
+      applieFilterCompleted();
       clickAllChecked();
       clickClearCompletedTodos();
     });
 
     it('should create a random number of ToDos', function() {
 
-      var r = getRandomArbitrary(2,10);
+      var r = getRandomArbitrary(10);
 
       for (var i = 0; i < r; i++) {
         addToDo(simpleTodoText + ' ' + i);
@@ -210,19 +232,39 @@ describe('TodoMVC page.', function() {
     it('should create one todo', function() {
       addToDo(simpleTodoText);
       expect(getRemainingCountText()).toBe('1');
+      expect(getCompletedCount()).toBe(0);
     });
 
     it('should check todo as completed', function() {
       checkToDoAsCompletedByIndex(0);
       expect(getRemainingCountText()).toBe('0');
+      expect(getCompletedCount()).toBe(1);
     });
 
     it('should uncheck todo as completed', function() {
       checkToDoAsCompletedByIndex(0);
       expect(getRemainingCountText()).toBe('1');
+      expect(getCompletedCount()).toBe(0);
     });
 
-    it('', function() {
+    it('should replace todo text', function() {
+      var newText = "simple text";
+      replaceTodoTitleByIndex(0, newText);
+      expect(getRemainingCountText()).toBe('1');
+      //expect(getTodoTitleFirst()).toBe(newText);
+    });
+
+    it('should complete todo text', function() {
+      var newText = " text";
+      changeTodoTitleByIndex(0, newText);
+      expect(getRemainingCountText()).toBe('1');
+      //expect(getTodoTitleFirst()).toBe(newText);
+    });
+
+    it('should applie filter Completed', function() {
+      applieFilterCompleted();
+      expect(getRemainingCountText()).toBe('1');
+      expect(getTodoInTodosCount()).toBe(0);
     });
   });
 });
