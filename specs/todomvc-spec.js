@@ -10,34 +10,20 @@ describe('TodoMVC page.', function() {
   // list of todos
   var todoInTodos = element.all(by.repeater('todo in todos')); //ng-repeat="todo in todos ..."
 
-  // list item
-  //var todoCompleted = element(by.model('todo.completed'));           //ng-model="todo.completed"
-  //var todoTitleLabel =  element(by.binding('todo.title'));           //{{todo.title}}
-  //var removeTodo = element(by.css('[ng-click="removeTodo(todo)"]')); //<button class="destroy" ng-click="removeTodo(todo)"></button>
-  
-  // edit list item
-  //var todoTitleEdit = element(by.model('todo.title'));               //ng-model="todo.title"
-
   // footer counter
+  var footer = element(by.css('[id="footer"]'));
+
   var remainingCount = element(by.binding('remainingCount')); //{{remainingCount}}
 
   // filters
-  var filterAll = element(by.css('[ng-class="{selected: status == \'\'} "]')); //<a ng-class="{selected: status == ''} " href="#/">All</a>
-  //var filterAll2 = element(webdriver.By.linkText("#/"));
-  
+  var filterAll = element(by.css('[ng-class="{selected: status == \'\'} "]')); //<a ng-class="{selected: status == ''} " href="#/">All</a>  
   var filterActive = element(by.css('[ng-class="{selected: status == \'active\'}"]')); //<a ng-class="{selected: status == 'active'}" href="#/active">Active</a>
-  //var filterActive2 = element(webdriver.By.linkText("#/active"));
-  
   var filterCompleted = element(by.css('[ng-class="{selected: status == \'completed\'}"]')); //<a ng-class="{selected: status == 'completed'}" href="#/completed">Completed</a>
-  //var filterCompleted2 = element(webdriver.By.linkText("#/completed"));
 
-  // remove all
-  //var clearCompletedTodos = element(by.css('[ng-click="clearCompletedTodos()"]')); //<button id="clear-completed" ng-click="clearCompletedTodos()" ng-show="completedCount">Clear completed ({{completedCount}})</button>
-  //var clearCompletedTodos = element(by.partialButtonText('Clear completed')); //ElementNotVisibleError: element not visible
-  var clearCompletedTodos = element(by.xpath('.//footer/button')); //ElementNotVisibleError: element not visible
-  //var clearCompletedTodos = element(by.css('#clear-completed::after button'));
+  // clear completed
+  var clearCompletedTodos = element(by.xpath('.//footer/button')); 
 
-  var completedCount = element(by.binding('completedCount')); //{{completedCount}}
+  var completedCount = element(by.css('{completedCount}')); //{{completedCount}}
 
 
   function addToDo(todoText) {
@@ -69,7 +55,7 @@ describe('TodoMVC page.', function() {
   };
 
   function getTodoTitleByIndex(index) {
-    return getTodoInTodosByIndex(index).element(by.binding('todo.title'));   //{{todo.title}}
+    return getTodoInTodosByIndex(index).getText();   //{{todo.title}}
   };
 
   function doubleClickTodoTitleByIndex(index) {
@@ -111,31 +97,24 @@ describe('TodoMVC page.', function() {
     getTodoCompletedByIndex(index).click();
   };
 
-  function checkToDoAsDoneByText(todoText) {
-    //
-  };
-
   function removeToDoByIndex(index) {
+    mouseMove(getTodoInTodosByIndex(index));
     getRemoveTodoByIndex(index).click();
-  };
-
-  function removeToDoByText(todoText) {
-    //
   };
   
   function getRemainingCountText() {
     return remainingCount.getText();
   };
 
-  function applieFilterAll() {
+  function applyFilterAll() {
     filterAll.click();
   };
 
-  function applieFilterActive() {
+  function applyFilterActive() {
     filterActive.click();
   };
 
-  function applieFilterCompleted() {
+  function applyFilterCompleted() {
     filterCompleted.click();
   };
 
@@ -144,19 +123,13 @@ describe('TodoMVC page.', function() {
   };
 
   function getCompletedCount() {
-    //return completedCount.getText();
     var script = "var re = /\\d+/; \
     var value = re.exec(arguments[0].innerHTML);\
     if (value) { return parseInt(value[0]); }\
     return 0;";
-    //var str = browser.executeScript("return arguments[0].innerHTML", getClearCompleted());
     return browser.executeScript(script, getClearCompleted());
   };
-
-  // function generateClearCompleted(value) {
-  //   return 'Clear completed (' + value + ')';
-  // };
-  
+ 
   function clickClearCompletedTodos() {
     browser.executeScript("arguments[0].click()", getClearCompleted());
   };
@@ -180,7 +153,7 @@ describe('TodoMVC page.', function() {
 
   xdescribe('Tests for helper functions.', function() {
 
-    it('should create a one ToDo', function() {
+    it('should create one ToDo', function() {
       var newText = 'new ';
       //var newTodoText = 'new simple todo';
       addToDo(simpleTodoText);
@@ -198,7 +171,7 @@ describe('TodoMVC page.', function() {
       removeToDoByIndex(0);
     });
 
-    it('should create a two ToDos', function() {
+    it('should create two ToDos', function() {
       addToDo(simpleTodoText + ' 1');
       addToDo(simpleTodoText + ' 2');
       
@@ -208,7 +181,7 @@ describe('TodoMVC page.', function() {
       clickClearCompletedTodos();
       addToDo(simpleTodoText + ' 3');
       mouseMove(filterCompleted);
-      applieFilterCompleted();
+      applyFilterCompleted();
       clickAllChecked();
       clickClearCompletedTodos();
     });
@@ -235,13 +208,13 @@ describe('TodoMVC page.', function() {
       expect(getCompletedCount()).toBe(0);
     });
 
-    it('should check todo as completed', function() {
+    it('should check a todo as completed', function() {
       checkToDoAsCompletedByIndex(0);
       expect(getRemainingCountText()).toBe('0');
       expect(getCompletedCount()).toBe(1);
     });
 
-    it('should uncheck todo as completed', function() {
+    it('should uncheck a todo as completed', function() {
       checkToDoAsCompletedByIndex(0);
       expect(getRemainingCountText()).toBe('1');
       expect(getCompletedCount()).toBe(0);
@@ -251,20 +224,87 @@ describe('TodoMVC page.', function() {
       var newText = "simple text";
       replaceTodoTitleByIndex(0, newText);
       expect(getRemainingCountText()).toBe('1');
-      //expect(getTodoTitleFirst()).toBe(newText);
+      expect(getTodoTitleByIndex(0)).toBe(newText);
     });
 
     it('should complete todo text', function() {
       var newText = " text";
       changeTodoTitleByIndex(0, newText);
       expect(getRemainingCountText()).toBe('1');
-      //expect(getTodoTitleFirst()).toBe(newText);
+      expect(getTodoTitleByIndex(0)).toMatch(newText + newText);
+    });
+  });
+
+  describe('Several todos.', function() {
+
+    it('should add a second todo', function() {
+      addToDo(simpleTodoText);
+      expect(getRemainingCountText()).toBe('2');
+      expect(getTodoInTodosCount()).toBe(2);
+      checkToDoAsCompletedByIndex(1);
+      expect(getRemainingCountText()).toBe('1');
+      expect(getTodoInTodosCount()).toBe(2);
     });
 
-    it('should applie filter Completed', function() {
-      applieFilterCompleted();
+    it('should apply the Completed filter', function() {
+      applyFilterCompleted();
       expect(getRemainingCountText()).toBe('1');
+      expect(getTodoInTodosCount()).toBe(1);
+    });
+
+    it('should apply the Active filter', function() {
+      applyFilterActive();
+      expect(getRemainingCountText()).toBe('1');
+      expect(getTodoInTodosCount()).toBe(1);
+    });
+
+    it('should apply the All filter', function() {
+      applyFilterCompleted();
+      applyFilterAll();
+      expect(getRemainingCountText()).toBe('1');
+      expect(getTodoInTodosCount()).toBe(2);
+    });
+
+    it('should check all as completed', function() {
+      clickAllChecked();
+      expect(getRemainingCountText()).toBe('0');
+      expect(getTodoInTodosCount()).toBe(2);
+    });
+
+    it('should uncheck all as completed', function() {
+      clickAllChecked();
+      expect(getRemainingCountText()).toBe('2');
+      expect(getTodoInTodosCount()).toBe(2);
+    });
+  });
+
+  describe('Remove todos.', function() {
+
+    it('should remove one todo', function() {
+      removeToDoByIndex(0);
+      expect(getRemainingCountText()).toBe('1');
+      expect(getTodoInTodosCount()).toBe(1);
+    });
+
+    it('should remove the last todo', function() {
+      removeToDoByIndex(0);
+      expect(getRemainingCountText()).toBe('');
       expect(getTodoInTodosCount()).toBe(0);
+      expect(footer.isDisplayed()).not.toBeTruthy();
+    });
+
+    it('should remove todos by clear completed', function() {
+      var r = getRandomArbitrary(5);
+
+      for (var i = 0; i < r; i++) {
+        addToDo(simpleTodoText + ' ' + i);
+      }
+
+      clickAllChecked();
+      clickClearCompletedTodos();
+      expect(getRemainingCountText()).toBe('');
+      expect(getTodoInTodosCount()).toBe(0);
+      expect(footer.isDisplayed()).not.toBeTruthy();
     });
   });
 });
